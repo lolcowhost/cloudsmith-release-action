@@ -10,6 +10,9 @@ inputs:
   repository-name:
     description: 'Repository name'
     required: true
+  api-key:
+    description: 'API key'
+    required: true
 outputs:
   random-number:
     description: "Random number"
@@ -39,7 +42,7 @@ runs:
     - name: Cloudsmith Push
       uses: cloudsmith-io/action@master
       with:
-        api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+        api-key: ${{ inputs.api-key }}
         command: "push"
         format: "maven"
         owner: "${{ inputs.owner-name }}"
