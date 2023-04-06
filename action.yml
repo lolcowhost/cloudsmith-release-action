@@ -1,10 +1,15 @@
 name: 'Cloudsmith Release'
 description: 'Release and upload maven artifact to Cloudsmith'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  artifact-name:  # id of input
+    description: 'Artifact name'
     required: true
-    default: 'World'
+  owner-name:
+    description: 'Owner name'
+    required: true
+  repository-name:
+    description: 'Repository name'
+    required: true
 outputs:
   random-number:
     description: "Random number"
@@ -12,8 +17,40 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - run: echo Hello ${{ inputs.who-to-greet }}.
-      shell: bash
+    - name: Set version to release
+      run: |
+        mvn versions:set -DremoveSnapshot
+        MVN_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+        echo "RELEASE_VERSION=$MVN_VERSION" >> $GITHUB_ENV
+    - name: Config git
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+    - name: Release
+      run: |
+        git commit -a -m "Prepare release ${{ env.RELEASE_VERSION }}"
+        git push
+        git tag ${{ env.RELEASE_VERSION }}
+        git push origin ${{ env.RELEASE_VERSION }}
+        mvn package
+    - name: Cloudsmith Push
+      uses: cloudsmith-io/action@master
+      with:
+        api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+        command: "push"
+        format: "maven"
+        owner: "${{ inputs.owner-name }}"
+        repo: "${{ inputs.repository-name }}"
+        pom-file: "pom.xml"
+        #republish: "true" # needed ONLY if version is not changing
+        file: "target/${{ inputs.artifact-name }}-${{ env.RELEASE_VERSION }}.jar"
+    
+    - name: Next snapshot
+      run: |
+        mvn versions:set -DnextSnapshot
+        git commit -a -m "Prepare next development iteration"
+        git push
+      
     - id: random-number-generator
       run: echo "random-number=$(echo $RANDOM)" >> $GITHUB_OUTPUT
       shell: bash
