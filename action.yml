@@ -18,15 +18,18 @@ runs:
   using: "composite"
   steps:
     - name: Set version to release
+      shell: bash
       run: |
         mvn versions:set -DremoveSnapshot
         MVN_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
         echo "RELEASE_VERSION=$MVN_VERSION" >> $GITHUB_ENV
     - name: Config git
+      shell: bash
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
     - name: Release
+      shell: bash
       run: |
         git commit -a -m "Prepare release ${{ env.RELEASE_VERSION }}"
         git push
@@ -46,6 +49,7 @@ runs:
         file: "target/${{ inputs.artifact-name }}-${{ env.RELEASE_VERSION }}.jar"
     
     - name: Next snapshot
+      shell: bash
       run: |
         mvn versions:set -DnextSnapshot
         git commit -a -m "Prepare next development iteration"
