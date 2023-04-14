@@ -54,6 +54,7 @@ runs:
     - name: Github package
       uses: ncipollo/release-action@v1
       with:
+        tag: ${{ env.RELEASE_VERSION }}
         artifacts: "target/${{ inputs.artifact-name }}-${{ env.RELEASE_VERSION }}.jar"
     
     - name: Next snapshot
