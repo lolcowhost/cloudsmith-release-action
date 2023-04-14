@@ -50,6 +50,11 @@ runs:
         pom-file: "pom.xml"
         #republish: "true" # needed ONLY if version is not changing
         file: "target/${{ inputs.artifact-name }}-${{ env.RELEASE_VERSION }}.jar"
+        
+    - name: Github package
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "target/${{ inputs.artifact-name }}-${{ env.RELEASE_VERSION }}.jar"
     
     - name: Next snapshot
       shell: bash
